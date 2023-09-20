@@ -1,21 +1,23 @@
-use std::io::{Cursor};
 use anyhow::Error;
 use async_trait::async_trait;
-use tokio::io::{AsyncWriteExt};
-use tokio::net::TcpStream;
-use crate::network::packet::{InboundPacket, OutboundPacket};
-use crate::utils::{read_varint, read_varlong};
+use std::io::Cursor;
+use tokio::io::AsyncWriteExt;
+
 use crate::network::packet::outbound::packet_play_out_pong::PacketPlayOutPong;
+use crate::network::packet::{InboundPacket, OutboundPacket};
 use crate::player::Connection;
+use crate::utils::{read_varint, read_varlong};
 
-pub struct PacketPlayInPing{
-    pub payload: i64
-
+pub struct PacketPlayInPing {
+    pub payload: i64,
 }
 
 #[async_trait]
 impl InboundPacket for PacketPlayInPing {
-    async fn deserialize(bytes: Vec<u8>) -> Result<Self, Error> where Self: Sized {
+    async fn deserialize(bytes: Vec<u8>) -> Result<Self, Error>
+    where
+        Self: Sized,
+    {
         let mut cursor = Cursor::new(bytes);
 
         let _packet_length = read_varint(&mut cursor)?;
@@ -31,9 +33,7 @@ impl InboundPacket for PacketPlayInPing {
         let payload = read_varlong(&mut cursor)?;
         // println!("data: {:?}", payload);
 
-        Ok(Self {
-            payload
-        })
+        Ok(Self { payload })
     }
 
     fn get_id(&self) -> u32 {
@@ -41,22 +41,24 @@ impl InboundPacket for PacketPlayInPing {
     }
 
     async fn handle(&self, connection: &mut Connection) {
+        println!("Received Ping packet with payload: {}", self.payload);
         let pong_packet = PacketPlayOutPong {
-            payload: self.payload
+            payload: self.payload,
         };
         if let Ok(e) = pong_packet.serialize().await {
+            //println!("Sending pong packet: {:?}", e);
             if let Err(e) = connection.stream.write_all((&e).as_ref()).await {
                 println!("There was an error sending the pong packet: {:?}", e);
             }
-        }else{
+        } else {
             println!("There was an error serializing the pong packet");
         }
 
         if let Err(_) = connection.stream.flush().await {
-            // println!("There was an error flushing the stream: {:?}", e);
+            println!("There was an error flushing the stream");
         }
         if let Err(_) = connection.stream.shutdown().await {
-            // println!("There was an error shutting down the stream: {:?}", e);
+            println!("There was an error shutting down the stream");
         }
     }
 }

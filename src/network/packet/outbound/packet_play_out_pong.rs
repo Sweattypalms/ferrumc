@@ -1,9 +1,9 @@
+use crate::network::packet::OutboundPacket;
+use crate::utils::{write_varint, write_varlong};
 use async_trait::async_trait;
-use crate::network::packet::{OutboundPacket};
-use crate::utils::{write_varlong, write_varint};
 
 pub struct PacketPlayOutPong {
-    pub payload: i64
+    pub payload: i64,
 }
 
 #[async_trait]
@@ -27,6 +27,6 @@ impl OutboundPacket for PacketPlayOutPong {
     }
 
     fn get_id(&self) -> u32 {
-        0x01
+        self.payload as u32
     }
 }

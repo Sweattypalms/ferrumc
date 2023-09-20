@@ -1,8 +1,6 @@
-use std::io::SeekFrom::Start;
 use anyhow::Result;
 use async_trait::async_trait;
-use uuid::{Bytes, Uuid};
-use crate::network::connection::state::ConnectionState::Login;
+use uuid::Uuid;
 
 use crate::network::packet::OutboundPacket;
 use crate::utils::write_varint;

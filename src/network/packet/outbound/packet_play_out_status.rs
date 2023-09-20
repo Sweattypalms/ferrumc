@@ -6,7 +6,7 @@ use crate::utils::write_varint;
 
 use anyhow::Result;
 
-pub struct PacketPlayOutStatus{
+pub struct PacketPlayOutStatus {
     pub motd: String,
 }
 
@@ -15,8 +15,8 @@ impl OutboundPacket for PacketPlayOutStatus {
     async fn serialize(&self) -> Result<Vec<u8>> {
         let mut sample = Vec::new();
         let sample_player = Sample {
-            name: "thinkofdeath".to_string(),
-            id: "4566e69f-c907-48ee-8d71-d7ba5aa00d20".to_string(),
+            name: "Recore_".to_string(),
+            id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string(),
         };
         sample.push(sample_player);
 
@@ -30,7 +30,7 @@ impl OutboundPacket for PacketPlayOutStatus {
             },
             players: Players {
                 max: 100,
-                online: 0,
+                online: 1,
                 sample,
             },
             description: Description {

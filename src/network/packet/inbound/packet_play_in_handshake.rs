@@ -7,11 +7,10 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
 use crate::network::connection::state::ConnectionState;
-use crate::network::packet::{InboundPacket, OutboundPacket};
 use crate::network::packet::outbound::packet_play_out_status::PacketPlayOutStatus;
+use crate::network::packet::{InboundPacket, OutboundPacket};
 use crate::player::Connection;
 use crate::utils::read_varint;
-use crate::utils::write_varint;
 
 pub struct PacketPlayInHandshake {
     pub protocol_version: i32,
@@ -22,7 +21,10 @@ pub struct PacketPlayInHandshake {
 
 #[async_trait]
 impl InboundPacket for PacketPlayInHandshake {
-    async fn deserialize(bytes: Vec<u8>) -> Result<Self> where Self: Sized {
+    async fn deserialize(bytes: Vec<u8>) -> Result<Self>
+    where
+        Self: Sized,
+    {
         let mut cursor = Cursor::new(bytes);
         // Read packet length
         let _packet_length = read_varint(&mut cursor)?;
@@ -43,7 +45,7 @@ impl InboundPacket for PacketPlayInHandshake {
 
         let server_port = cursor.read_u16::<BigEndian>()?;
 
-        // Next state :: 1 for status, 2 for login
+        // Next state :: 1 for status, 2 for login, 3 for play
         let next_state = read_varint(&mut cursor)?;
 
         Ok(Self {
@@ -68,13 +70,23 @@ impl InboundPacket for PacketPlayInHandshake {
 
         // send back a response with Out: Status packet.
 
-        if self.next_state == 1 {
-            self.send_status_packet(&mut connection.stream).await;
-            connection.state = ConnectionState::Status;
-            println!("Updated state to Status");
-        } else if self.next_state == 2{
-            connection.state = ConnectionState::Login;
-            println!("Updated state to Login");
+        match self.next_state {
+            1 => {
+                self.send_status_packet(&mut connection.stream).await;
+                connection.state = ConnectionState::Status;
+                println!("Received handshake packet with next state: Status");
+            }
+            2 => {
+                connection.state = ConnectionState::Login;
+                println!("Received handshake packet with next state: Login");
+            }
+            3 => {
+                connection.state = ConnectionState::Play;
+                println!("Received handshake packet with next state: Play");
+            }
+            _ => {
+                println!("Invalid next state: {}", self.next_state);
+            }
         }
     }
 }
@@ -90,12 +102,14 @@ impl PacketPlayInHandshake {
             // println!("sent data: {:?}", serialized_data);
         }
 
-        // send a new buffer with [1,0] for ping
-        let mut ping_buffer = vec![];
-        write_varint(&mut ping_buffer, 0x01).await;
-        write_varint(&mut ping_buffer, 0x00).await;
+        // // send a new buffer with [1,0] for ping
 
-        let _ = stream.write_all((&ping_buffer).as_ref()).await;
+        // This was causing the server to send a blank status packet right after the first one.
+        // let mut ping_buffer = vec![];
+        // write_varint(&mut ping_buffer, 0x01).await;
+        // write_varint(&mut ping_buffer, 0x00).await;
+        //
+        // let _ = stream.write_all((&ping_buffer).as_ref()).await;
 
         stream.flush().await.unwrap();
     }

@@ -1,14 +1,14 @@
 use std::io::Cursor;
 use std::sync::Arc;
 
-use anyhow::{Error, Result};
+use anyhow::{Result};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 
 use crate::network::connection::state::ConnectionState;
 use crate::network::packet::{OutboundPacket, REGISTRY};
-use crate::utils::{read_varint, read_varint_async};
+
 
 pub struct Player {
     pub uuid: String,

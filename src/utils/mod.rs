@@ -60,7 +60,7 @@ pub fn read_varint<R: Read>(mut reader: R) -> Result<i32> {
 
     Ok(result)
 }
-pub async fn read_varint_async(mut stream: &mut tokio::net::TcpStream) -> Result<i32, anyhow::Error> {
+pub async fn read_varint_async(stream: &mut tokio::net::TcpStream) -> Result<i32, anyhow::Error> {
     let mut buffer: Vec<u8> = Vec::new();
     let mut tmp = [0u8; 1];
 
