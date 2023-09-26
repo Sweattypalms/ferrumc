@@ -4,6 +4,7 @@ use std::fmt::{Display, Formatter};
 pub enum FerrumcError {
     InvalidPacketID,
     InvalidState,
+    NotYetImplemented,
 }
 
 impl Display for FerrumcError {
@@ -11,6 +12,7 @@ impl Display for FerrumcError {
         match self {
             FerrumcError::InvalidPacketID => write!(f, "The packet ID is invalid"),
             FerrumcError::InvalidState => write!(f, "The connection is in an invalid state"),
+            FerrumcError::NotYetImplemented => write!(f, "This feature is not yet implemented"),
         }
     }
 }
@@ -21,6 +23,7 @@ impl std::error::Error for FerrumcError {
         match self {
             FerrumcError::InvalidPacketID => "The packet ID is invalid",
             FerrumcError::InvalidState => "The connection is in an invalid state",
+            FerrumcError::NotYetImplemented => "This feature is not yet implemented",
         }
     }
 
