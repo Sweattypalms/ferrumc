@@ -24,7 +24,7 @@ pub async fn handle_handshake(
         2 => ConnectionState::Login,
         _ => {
             error!("Invalid next state: {}", next_state);
-            return Err(FerrumcError::InvalidPacketID);
+            return Err(FerrumcError::InvalidState);
         }
     };
     return Ok(None);
