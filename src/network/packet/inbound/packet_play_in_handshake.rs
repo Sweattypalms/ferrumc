@@ -3,6 +3,7 @@ use std::io::{Cursor, Read};
 use anyhow::Result;
 use async_trait::async_trait;
 use byteorder::{BigEndian, ReadBytesExt};
+use log::{info, trace};
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 
@@ -74,18 +75,18 @@ impl InboundPacket for PacketPlayInHandshake {
             1 => {
                 self.send_status_packet(&mut connection.stream).await;
                 connection.state = ConnectionState::Status;
-                println!("Received handshake packet with next state: Status");
+                trace!("Received handshake packet with next state: Status");
             }
             2 => {
                 connection.state = ConnectionState::Login;
-                println!("Received handshake packet with next state: Login");
+                trace!("Received handshake packet with next state: Login");
             }
             3 => {
                 connection.state = ConnectionState::Play;
-                println!("Received handshake packet with next state: Play");
+                trace!("Received handshake packet with next state: Play");
             }
             _ => {
-                println!("Invalid next state: {}", self.next_state);
+                info!("Invalid next state: {}", self.next_state);
             }
         }
     }
@@ -99,7 +100,7 @@ impl PacketPlayInHandshake {
 
         if let Ok(serialized_data) = status_packet.serialize().await {
             let _ = stream.write_all((&serialized_data).as_ref()).await;
-            // println!("sent data: {:?}", serialized_data);
+            trace!("sent data: {:?}", serialized_data);
         }
 
         // // send a new buffer with [1,0] for ping

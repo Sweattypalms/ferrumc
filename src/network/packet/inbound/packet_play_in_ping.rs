@@ -1,5 +1,6 @@
 use anyhow::Error;
 use async_trait::async_trait;
+use log::{error, trace};
 use std::io::Cursor;
 use tokio::io::AsyncWriteExt;
 
@@ -24,6 +25,7 @@ impl InboundPacket for PacketPlayInPing {
 
         // Read Packet ID (should be 1 for a Ping packet)
         let packet_id = read_varint(&mut cursor)?;
+        trace!("packet_id: {:?} | packet length: {:?}", packet_id, _packet_length);
 
         if packet_id != 1 {
             return Err(Error::msg("Invalid packet ID"));
@@ -31,7 +33,7 @@ impl InboundPacket for PacketPlayInPing {
 
         // Read payload
         let payload = read_varlong(&mut cursor)?;
-        // println!("data: {:?}", payload);
+        trace!("data: {:?}", payload);
 
         Ok(Self { payload })
     }
@@ -41,24 +43,24 @@ impl InboundPacket for PacketPlayInPing {
     }
 
     async fn handle(&self, connection: &mut Connection) {
-        println!("Received Ping packet with payload: {}", self.payload);
+        trace!("Received Ping packet with payload: {}", self.payload);
         let pong_packet = PacketPlayOutPong {
             payload: self.payload,
         };
         if let Ok(e) = pong_packet.serialize().await {
             //println!("Sending pong packet: {:?}", e);
             if let Err(e) = connection.stream.write_all((&e).as_ref()).await {
-                println!("There was an error sending the pong packet: {:?}", e);
+                error!("There was an error sending the pong packet: {:?}", e);
             }
         } else {
-            println!("There was an error serializing the pong packet");
+            error!("There was an error serializing the pong packet");
         }
 
         if let Err(_) = connection.stream.flush().await {
-            println!("There was an error flushing the stream");
+            error!("There was an error flushing the stream");
         }
         if let Err(_) = connection.stream.shutdown().await {
-            println!("There was an error shutting down the stream");
+            error!("There was an error shutting down the stream");
         }
     }
 }
