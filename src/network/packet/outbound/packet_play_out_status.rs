@@ -5,6 +5,7 @@ use crate::network::packet::OutboundPacket;
 use crate::utils::write_varint;
 
 use anyhow::Result;
+use log::trace;
 
 pub struct PacketPlayOutStatus {
     pub motd: String,
@@ -20,9 +21,6 @@ impl OutboundPacket for PacketPlayOutStatus {
         };
         sample.push(sample_player);
 
-        // sample.insert("name".to_string(), "thinkofdeath".to_string());
-        // sample.insert("id".to_string(), "4566e69f-c907-48ee-8d71-d7ba5aa00d20".to_string());
-
         let payload = JsonResponse {
             version: Version {
                 name: "FerrumC - 1.17.1".to_string(),
@@ -30,13 +28,15 @@ impl OutboundPacket for PacketPlayOutStatus {
             },
             players: Players {
                 max: 100,
-                online: 1,
+                online: sample.len() as i32,
                 sample,
             },
             description: Description {
                 text: self.motd.clone(),
             },
         };
+
+        trace!("Status payload: {:?}", payload);
 
         let json_bytes = serde_json::to_vec(&payload)?;
 
@@ -60,6 +60,8 @@ impl OutboundPacket for PacketPlayOutStatus {
 
         final_buffer.extend_from_slice((&temp_buffer).as_ref());
 
+        trace!("final play_out_status buffer: {:?}", final_buffer);
+
         Ok(final_buffer)
     }
 
@@ -67,32 +69,32 @@ impl OutboundPacket for PacketPlayOutStatus {
         todo!()
     }
 }
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct JsonResponse {
     version: Version,
     players: Players,
     description: Description,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Version {
     name: String,
     protocol: i32,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Players {
     max: i32,
     online: i32,
     sample: Vec<Sample>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Description {
     text: String,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct Sample {
     name: String,
     id: String,

@@ -1,5 +1,6 @@
 use anyhow::Result;
 use async_trait::async_trait;
+use log::trace;
 use uuid::Uuid;
 
 use crate::network::packet::OutboundPacket;
@@ -39,7 +40,7 @@ impl OutboundPacket for PacketPlayOutLoginSuccess {
 
         final_buffer.extend_from_slice(&temp_buffer);
 
-        // println!("final_buffer: {:?}", final_buffer);
+        trace!("final play_out_login buffer: {:?}", final_buffer);
 
         Ok(final_buffer)
     }

@@ -1,6 +1,7 @@
 use crate::network::packet::OutboundPacket;
 use crate::utils::{write_varint, write_varlong};
 use async_trait::async_trait;
+use log::trace;
 
 pub struct PacketPlayOutPong {
     pub payload: i64,
@@ -22,6 +23,8 @@ impl OutboundPacket for PacketPlayOutPong {
         let mut final_buffer = Vec::new();
 
         final_buffer.extend_from_slice(&temp_buffer);
+        
+        trace!("final play_out_pong buffer: {:?}", final_buffer);
 
         Ok(final_buffer)
     }

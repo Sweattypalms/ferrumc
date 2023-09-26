@@ -1,7 +1,8 @@
 use std::io::Cursor;
 use std::sync::Arc;
 
-use anyhow::{Result};
+use anyhow::Result;
+use log::trace;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
@@ -9,11 +10,10 @@ use tokio::sync::Mutex;
 use crate::network::connection::state::ConnectionState;
 use crate::network::packet::{OutboundPacket, REGISTRY};
 
-
 pub struct Player {
     pub uuid: String,
     pub username: String,
-    pub connection: Arc<Mutex<Connection>>,  // Wrapped in Mutex for mutable access
+    pub connection: Arc<Mutex<Connection>>, // Wrapped in Mutex for mutable access
 }
 
 impl Player {
@@ -21,7 +21,10 @@ impl Player {
         Player {
             uuid: "".to_string(),
             username: "".to_string(),
-            connection: Arc::new(Mutex::new(Connection::new(ConnectionState::Handshaking, stream))),
+            connection: Arc::new(Mutex::new(Connection::new(
+                ConnectionState::Handshaking,
+                stream,
+            ))),
         }
     }
 
@@ -32,7 +35,6 @@ impl Player {
     }
 }
 
-
 pub struct Connection {
     pub state: ConnectionState,
     pub stream: TcpStream,
@@ -40,10 +42,7 @@ pub struct Connection {
 
 impl Connection {
     pub fn new(state: ConnectionState, stream: TcpStream) -> Self {
-        Connection {
-            state,
-            stream,
-        }
+        Connection { state, stream }
     }
     pub async fn send_packet(&mut self, packet: impl OutboundPacket) -> Result<()> {
         let serialized = packet.serialize().await?;
@@ -54,7 +53,6 @@ impl Connection {
     }
 
     pub async fn send_packet_bytes(&mut self, packet: Vec<u8>) -> Result<()> {
-
         let max_size = 32;
 
         let mut cursor = Cursor::new(&packet);
@@ -70,7 +68,6 @@ impl Connection {
             bytes_read += bytes_to_read;
         }
         Ok(())
-
     }
 
     pub async fn start_connection(&mut self) -> Result<()> {
@@ -91,8 +88,11 @@ impl Connection {
             // println!("Received packet data: {:?}", packet_data);
 
             if let Some(packet) = REGISTRY.deserialize_inbound(self.state, packet_data).await {
-                print!("Packet Id: {:?}", packet.get_id());
-                println!("\tCurrent State: {:?}", self.state);
+                trace!(
+                    "Packet Id: {:?} | Current state: {:?}",
+                    packet.get_id(),
+                    self.state
+                );
                 packet.handle(self).await;
             }
         }

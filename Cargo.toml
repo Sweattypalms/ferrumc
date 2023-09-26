@@ -27,3 +27,6 @@ ferrumc_world = { path = "crates/ferrumc_world" }
 serde_path_to_error = "0.1.14"
 figlet-rs = "0.1.5"
 owo-colors = "3.5.0"
+log = "0.4.20"
+pretty_env_logger = "0.5.0"
+ferrumc_net = { path = "crates/ferrumc_net" }

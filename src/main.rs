@@ -5,8 +5,13 @@ use ferrumc::server::Server;
 use figlet_rs::FIGfont;
 use owo_colors::OwoColorize;
 
+extern crate pretty_env_logger;
+#[macro_use]
+extern crate log;
+
 #[tokio::main]
 async fn main() -> Result<()> {
+    pretty_env_logger::init();
     let standard_font = FIGfont::standard().unwrap();
     let figure = standard_font.convert("FerrumC").unwrap();
     let mut red = 255;
