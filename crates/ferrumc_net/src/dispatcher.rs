@@ -3,6 +3,8 @@ use log::{error, trace};
 
 use crate::Connection;
 use crate::ConnectionState;
+use crate::Handlers::handshake;
+use crate::Handlers::status::status;
 
 pub(crate) async fn dispatch(
     mut connection: &mut Connection,
@@ -10,27 +12,10 @@ pub(crate) async fn dispatch(
 ) -> Result<Option<Vec<u8>>, FerrumcError> {
     let mut outbound_packet: Vec<u8> = Vec::new();
     match connection.state {
-        ConnectionState::Handshaking => match packet[0] {
+        ConnectionState::Handshaking => match packet[1] {
             0x00 => {
-                let protocol_version = packet[1];
-                let server_address =
-                    String::from_utf8(packet[2..packet.len() - 2].to_vec()).unwrap();
-                let server_port =
-                    u16::from_be_bytes([packet[packet.len() - 2], packet[packet.len() - 1]]);
-                let next_state = packet[packet.len() - 3];
-                trace!("Protocol Version: {}", protocol_version);
-                trace!("Server Address: {}", server_address);
-                trace!("Server Port: {}", server_port);
-                trace!("Next State: {}", next_state);
-                connection.state = match next_state {
-                    1 => ConnectionState::Status,
-                    2 => ConnectionState::Login,
-                    _ => {
-                        error!("Invalid next state: {}", next_state);
-                        return Err(FerrumcError::InvalidPacketID);
-                    }
-                };
-                return Ok(None);
+                trace!("Received handshake packet");
+                handshake::handle_handshake(packet, &mut connection).await
             }
 
             _ => {
@@ -38,9 +23,21 @@ pub(crate) async fn dispatch(
                 return Err(FerrumcError::InvalidPacketID);
             }
         },
-        ConnectionState::Status => {
-            todo!();
-        }
+        ConnectionState::Status => match packet[1] {
+            0x00 => {
+                trace!("Received status request packet");
+                status(&mut connection).await
+            }
+            0x01 => {
+                trace!("Received status ping packet");
+                // Just return the same packet lol
+                Ok(Some(packet))
+            }
+            _ => {
+                error!("Unknown packet ID: {} for status stage", packet[0]);
+                return Err(FerrumcError::InvalidPacketID);
+            }
+        },
         ConnectionState::Login => {
             todo!();
         }
