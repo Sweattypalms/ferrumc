@@ -1,6 +1,9 @@
+use std::io::Read;
 use log::*;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
+use crate::err::FerrumcError;
+use byteorder::{BigEndian, ReadBytesExt};
 
 mod Handlers;
 mod dispatcher;
@@ -44,35 +47,42 @@ pub async fn handle_connection(stream: TcpStream) {
     };
 
     loop {
-        let mut inbound_packet = vec![0u8; 256];
-        let read_bytes = connection
-            .stream
-            .read(&mut inbound_packet)
-            .await
-            .expect("Unable to read packet");
-        if read_bytes == 0 {
-            info!("Connection closed");
-            break;
-        }
+        // let mut inbound_packet = vec![0u8; 256];
+        // let read_bytes = connection
+        //     .stream
+        //     .read(&mut inbound_packet)
+        //     .await
+        //     .expect("Unable to read packet");
+        // if read_bytes == 0 {
+        //     info!("Connection closed");
+        //     break;
+        // }
+
+        let mut length_buf = [0u8; 1];
+
+
         info!("Read {} bytes", read_bytes);
         info!(
             "Raw Data: {} ",
             parse_packet_string(&inbound_packet[0..read_bytes])
         );
-        let return_data =
-            dispatcher::dispatch(&mut connection, inbound_packet[0..read_bytes].to_vec())
-                .await
-                .expect("Unable to dispatch packet");
-        if let Some(data) = return_data {
-            trace!("Sending {:?} bytes of data", data.len());
-            connection
-                .stream
-                .write_all(&data)
-                .await
-                .expect("Unable to write packet");
-            connection.stream.flush().await.unwrap();
-        } else {
-            trace!("No data to send");
+        let result = dispatcher::dispatch(&mut connection, inbound_packet[0..read_bytes].to_vec()).await;
+
+        match result {
+            Ok(Some(data)) => {
+                trace!("Sending {:?} bytes of data", data.len());
+                connection.stream.write_all(&data).await.expect("Unable to write packet");
+                connection.stream.flush().await.unwrap();
+            }
+            Ok(None) => {
+                trace!("No data to send");
+            }
+            Err(FerrumcError::InvalidPacketID) => {
+                warn!("Received an unknown packet ID");
+            }
+            Err(e) => {
+                error!("Error handling packet: {:?}", e);
+            }
         }
         inbound_packet.clear();
     }
@@ -109,4 +119,71 @@ pub fn int_to_varint(mut value: u32) -> Vec<u8> {
         }
     }
     bytes
+}
+
+pub fn read_varint<R: Read>(mut reader: R) -> Result<i32, FerrumcError> {
+    let mut num_read = 0;
+    let mut result = 0;
+    let mut read = 0x80; // Dummy value to start the loop
+
+    while (read & 0x80) != 0 {
+        // read = reader.read_u8()?;
+        read = byteorder::ReadBytesExt::read_u8(&mut reader)
+            .map_err(|_| FerrumcError::InvalidPacketID)?;
+            // .await
+            // .map_err(|_| FerrumcError::InvalidPacketID)?; // Read a byte from the stream
+        let val = read & 0x7F; // Take the last 7 bits of the byte
+        result |= (val as i32) << (7 * num_read); // Shift the 7 bits to their proper place
+
+        num_read += 1;
+
+        if num_read > 5 {
+            return Err(FerrumcError::InvalidPacketID);
+        }
+    }
+
+    Ok(result)
+}
+
+
+trait CursorExt {
+    fn read_varint(&mut self) -> Result<i32, FerrumcError>;
+    fn read_varstring(&mut self) -> Result<String, FerrumcError>;
+    fn read_u16_be(&mut self) -> Result<u16, FerrumcError>;
+}
+
+impl<R: Read> CursorExt for R {
+    fn read_varint(&mut self) -> Result<i32, FerrumcError> {
+        let mut num_read = 0;
+        let mut result = 0;
+        let mut read = 0x80; // Dummy value to start the loop
+
+        while (read & 0x80) != 0 {
+            // read = reader.read_u8()?;
+            read = byteorder::ReadBytesExt::read_u8(self)
+                .map_err(|_| FerrumcError::InvalidVarInt)?;
+            let val = read & 0x7F; // Take the last 7 bits of the byte
+            result |= (val as i32) << (7 * num_read); // Shift the 7 bits to their proper place
+
+            num_read += 1;
+
+            if num_read > 5 {
+                return Err(FerrumcError::InvalidVarInt);
+            }
+        }
+
+        Ok(result)
+    }
+
+    fn read_varstring(&mut self) -> Result<String, FerrumcError> {
+        let length = self.read_varint()?;
+        let mut string = vec![0u8; length as usize];
+        self.read_exact(&mut string).map_err(|_| FerrumcError::InvalidString)?;
+        let string = String::from_utf8(string).map_err(|_| FerrumcError::InvalidString)?;
+        Ok(string)
+    }
+
+    fn read_u16_be(&mut self) -> Result<u16, FerrumcError> {
+        self.read_u16::<BigEndian>().map_err(|_| FerrumcError::InvalidBigEndian)
+    }
 }
