@@ -3,7 +3,6 @@ use byteorder::{BigEndian, ReadBytesExt};
 use log::trace;
 use crate::err::FerrumcError;
 use crate::server::packet::PacketData;
-use crate::server::player_connection::Connection;
 
 pub async fn player_position(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
 

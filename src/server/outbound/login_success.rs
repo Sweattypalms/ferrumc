@@ -1,12 +1,9 @@
-use byteorder::WriteBytesExt;
-use log::trace;
 use uuid::Uuid;
 use ferrumc::create_packet;
 use crate::err::FerrumcError;
 use crate::server::player_connection::{Connection, ConnectionState};
 use crate::utils::MinecraftWriterExt;
 use tokio::io::AsyncWriteExt;
-use ferrumc_world::nbtstructs::dimension_codec::DimensionCodec;
 use crate::server::outbound::login_play::login_play;
 
 pub async fn login_success(connection: &mut Connection, username: String) -> Result<(), FerrumcError> {
