@@ -1,60 +1,44 @@
-use crate::{err::FerrumcError, int_to_varint, varint_to_int, Connection, ConnectionState};
 use std::io::Cursor;
-use base64::encode;
+use base64::{Engine};
 use image::load_from_memory;
 use lazy_static::lazy_static;
+use log::{debug, trace, error};
+use serde_derive::Serialize;
+use ferrumc::create_packet;
+use crate::config::CONFIG;
+use crate::err::FerrumcError;
+use crate::server::connection::Connection;
+use crate::utils::MinecraftWriterExt;
 
-use serde::Serialize;
 
-use log::{debug, error, trace};
-
-pub async fn status(connection: &mut Connection) -> Result<Option<Vec<u8>>, FerrumcError> {
+pub async fn status(connection: &mut Connection) -> Result<(), FerrumcError> {
     let mut sample = Vec::new();
     let sample_player = Sample {
         name: "§9§lFerrumC".to_string(),
-        id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string(),
+        id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string()
     };
     sample.push(sample_player);
 
+    let config = CONFIG.clone();
     let payload = JsonResponse {
         version: Version {
             name: "FerrumC - 1.17.1".to_string(),
             protocol: 756,
         },
         players: Players {
-            max: 100,
-            online: sample.len() as i32,
+            max: config.max_players,
+            online: 0,
             sample,
         },
         description: Description {
-            text: "FerrumC - A Minecraft Server".to_string(),
+            text: config.motd,
         },
         favicon: ICON_BASE64.clone(),
     };
 
-    let json_bytes = serde_json::to_vec(&payload).expect("Unable to serialize JSON");
-
-    let mut temp_buffer = vec![];
-
-    // Write Packet ID (0x00)
-    temp_buffer.push(0x00);
-
-    // Write the length of the JSON string as VarInt
-    temp_buffer.extend_from_slice(&int_to_varint(json_bytes.len() as u32));
-
-    // Write JSON string bytes
-    temp_buffer.extend_from_slice(&*json_bytes);
-
-    let packet_length = temp_buffer.len() as i32;
-
-    let mut final_buffer = vec![];
-
-    // Write the total packet length as VarInt
-    final_buffer.extend_from_slice(&int_to_varint(packet_length as u32));
-
-    final_buffer.extend_from_slice((&temp_buffer).as_ref());
-
-    Ok(Some(final_buffer))
+    let payload = create_packet!(0x00, payload)?;
+    connection.write(&payload).await?;
+    Ok(())
 }
 
 #[derive(Serialize, Debug)]
@@ -122,6 +106,5 @@ fn png_to_base64(png_bytes: &[u8]) -> String {
     img.write_to(&mut buf, image::ImageOutputFormat::Png)
         .unwrap();
 
-    encode(buf.get_ref())
+    base64::engine::general_purpose::STANDARD.encode(buf.get_ref())
 }
-

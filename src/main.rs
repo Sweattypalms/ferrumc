@@ -1,38 +1,56 @@
-extern crate ferrumc;
+use log::{error, info};
+use std::io::Write;
+use chrono::Local;
+use colored::{Colorize};
 
-use anyhow::Result;
-use figlet_rs::FIGfont;
-use owo_colors::OwoColorize;
-use tokio::net::TcpListener;
-use tokio::spawn;
-
-extern crate pretty_env_logger;
-#[macro_use]
-extern crate log;
+pub mod config;
+pub mod err;
+pub mod server;
+pub mod utils;
 
 #[tokio::main]
-async fn main() -> Result<()> {
-    pretty_env_logger::init();
-    let standard_font = FIGfont::standard().unwrap();
-    let figure = standard_font.convert("FerrumC").unwrap();
-    let mut red = 255;
-    figure.to_string().split("\n").for_each(|line| {
-        red -= 25;
-        println!(
-            "{}",
-            line.color(owo_colors::Rgb {
-                0: red,
-                1: 105,
-                2: 180
-            })
-        );
-    });
+async fn main() {
+    env_logger::builder()
+        .format(|buf, record| {
+            let level = match record.level() {
+                log::Level::Error => "ERROR".red(),
+                log::Level::Warn => "WARN".yellow(),
+                log::Level::Info => "INFO".green(),
+                log::Level::Debug => "DEBUG".blue(),
+                log::Level::Trace => "TRACE".cyan(),
+            };
+            writeln!(
+                buf,
+                "[{} {}]: {}",
+                Local::now().format("%H:%M:%S"),
+                level,
+                record.args()
+            )
+        })
+        .filter_level(log::LevelFilter::max())
+        .init();
 
-    let listener = TcpListener::bind("0.0.0.0:25565").await?;
-    info!("TCP listener created and bound to port 25565");
-    loop {
-        // server loop
-        let (socket, _) = listener.accept().await?;
-        spawn(ferrumc_net::handle_connection(socket));
+    start().await;
+}
+
+async fn start() {
+    info!("{}", "                                                            ".purple());
+    info!("{}", "   ______                                             _____ ".purple());
+    info!("{}", "  |  ____|                                           / ____|".purple());
+    info!("{}", "  | |__      ___   _ __   _ __   _   _   _ __ ___   | |     ".purple());
+    info!("{}", "  |  __|    / _ \\ | '__| | '__| | | | | | '_ ` _ \\  | |     ".purple());
+    info!("{}", "  | |      |  __/ | |    | |    | |_| | | | | | | | | |____ ".purple());
+    info!("{}", "  |_|       \\___| |_|    |_|     \\__,_| |_| |_| |_|  \\_____|".purple());
+    info!("{}", "                                                            ".purple());
+
+
+    info!("Starting FerrumC... ");
+    info!("Minecraft version: {}", "1.17.1".green());
+    let config = config::CONFIG.clone();
+
+    let server = server::start_server(&config.host, config.port).await;
+
+    if let Err(err) = server {
+        error!("{}", err);
     }
 }
