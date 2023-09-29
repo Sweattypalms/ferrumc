@@ -13,6 +13,7 @@ pub enum FerrumcError {
     InvalidBigEndian,
     InvalidState,
     InvalidPacketId,
+    NBTError(fastnbt::error::Error),
 }
 
 impl From<std::io::Error> for FerrumcError {
@@ -39,6 +40,12 @@ impl From<serde_json::Error> for FerrumcError {
     }
 }
 
+impl From<fastnbt::error::Error> for FerrumcError {
+    fn from(err: fastnbt::error::Error) -> FerrumcError {
+        FerrumcError::NBTError(err)
+    }
+}
+
 impl Display for FerrumcError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
@@ -53,6 +60,7 @@ impl Display for FerrumcError {
             FerrumcError::InvalidBigEndian => write!(f, "Invalid BigEndian!"),
             FerrumcError::InvalidState => write!(f, "Invalid state!"),
             FerrumcError::InvalidPacketId => write!(f, "Invalid packet id!"),
+            FerrumcError::NBTError(ref err) => write!(f, "NBT error: {}", err),
         }
     }
 }

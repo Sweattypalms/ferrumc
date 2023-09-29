@@ -1,13 +1,14 @@
-pub mod connection;
+pub mod player_connection;
 pub mod packet;
 pub mod inbound;
 pub mod outbound;
+pub mod player;
 
 use colored::Colorize;
 use log::{info, trace};
 use tokio::net::{TcpListener, TcpStream};
 use crate::err::FerrumcError;
-use crate::server::connection::Connection;
+use crate::server::player_connection::Connection;
 
 pub async fn start_server(host: &str, port: u16) -> Result<(), FerrumcError> {
     info!("Starting server on {}:{}", host.blue(), port.to_string().blue());

@@ -65,9 +65,6 @@ impl Connection {
             buf[0..].rotate_left(1);
             // trace!("Packet buffer: {:?}", buf);
 
-            // let mut packet = PACKET_REGISTRY.get_packet(self.state, packet_id as u8, buf).await?;
-            // packet.handle(self).await?;
-            // handle_packet(self, packet_id as u8, buf).await?;
             match handle_packet(self, packet_id as u8, buf).await {
                 Ok(_) => {},
                 Err(err) => {
