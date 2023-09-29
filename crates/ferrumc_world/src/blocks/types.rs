@@ -1,3 +1,7 @@
+#![allow(non_snake_case)]
+#![allow(dead_code)]
+
+
 pub trait NBTSerializable {
     fn to_nbt(&self) -> Vec<u8>;
 }
