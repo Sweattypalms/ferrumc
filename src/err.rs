@@ -39,7 +39,6 @@ impl From<serde_json::Error> for FerrumcError {
     }
 }
 
-
 impl Display for FerrumcError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {

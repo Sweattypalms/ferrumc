@@ -14,9 +14,10 @@ pub async fn start_server(host: &str, port: u16) -> Result<(), FerrumcError> {
 
     let listener = TcpListener::bind(format!("{}:{}", host, port)).await.map_err(|_| FerrumcError::PortAlreadyInUse(port))?;
 
+
     loop {
         let (socket, addr) = listener.accept().await.unwrap();
-        info!("Accepted connection from ({}:{})", addr.ip().to_string().green(), addr.port().to_string().blue());
+        trace!("Accepted connection from ({}:{})", addr.ip().to_string().green(), addr.port().to_string().blue());
 
         tokio::spawn(handle_connection(socket));
     }
