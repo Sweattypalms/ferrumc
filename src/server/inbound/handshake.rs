@@ -1,7 +1,7 @@
 use std::io::Cursor;
 use log::trace;
 use crate::err::FerrumcError;
-use crate::server::connection::ConnectionState;
+use crate::server::player_connection::ConnectionState;
 use crate::server::outbound::status::status;
 use crate::server::packet::PacketData;
 use crate::utils::MinecraftReaderExt;

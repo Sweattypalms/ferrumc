@@ -7,7 +7,7 @@ use serde_derive::Serialize;
 use ferrumc::create_packet;
 use crate::config::CONFIG;
 use crate::err::FerrumcError;
-use crate::server::connection::Connection;
+use crate::server::player_connection::Connection;
 use crate::utils::MinecraftWriterExt;
 
 
