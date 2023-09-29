@@ -32,7 +32,11 @@ impl Connection {
         self.stream.write_all(&data).await?;
         Ok(())
     }
-
+    pub async fn close(&mut self) {
+        if let Err(_) = self.stream.shutdown().await {
+            trace!("Error closing connection of addr: {}", self.stream.peer_addr().unwrap());
+        }
+    }
     pub async fn start_connection(&mut self) -> Result<(), FerrumcError> {
         loop {
             let mut length_buffer = [0u8; 1]; // 1 byte, can have at most 255 bytes in a packet

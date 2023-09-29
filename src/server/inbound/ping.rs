@@ -14,5 +14,7 @@ pub async fn ping(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
 
     packet_data.connection.write(&buffer).await?;
 
+    packet_data.connection.close().await;
+
     Ok(())
 }

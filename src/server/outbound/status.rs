@@ -2,7 +2,7 @@ use std::io::Cursor;
 use base64::{Engine};
 use image::load_from_memory;
 use lazy_static::lazy_static;
-use log::{debug, trace, error};
+use log::{debug, error};
 use serde_derive::Serialize;
 use ferrumc::create_packet;
 use crate::config::CONFIG;
@@ -36,7 +36,13 @@ pub async fn status(connection: &mut Connection) -> Result<(), FerrumcError> {
         favicon: ICON_BASE64.clone(),
     };
 
-    let payload = create_packet!(0x00, payload)?;
+    let mut buffer = Vec::new();
+
+    let mut payload = serde_json::to_vec(&payload)?;
+    buffer.write_varint(payload.len() as i32)?;
+    buffer.append(&mut payload);
+
+    let payload = create_packet!(0x00, buffer)?;
     connection.write(&payload).await?;
     Ok(())
 }

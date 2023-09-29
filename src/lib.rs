@@ -28,14 +28,11 @@ macro_rules! handle_packet {
 /// ```
 /// use ferrumc::create_packet;
 ///
-/// struct Status {
-///     motd: String
-/// }
-///
-/// let status = Status {
-///    motd: "A FerrumC server".to_string()
-/// };
-/// let bytes = create_packet!(0x00, status);
+/// let mut  somedatabytes: Vec<u8> = vec![0x00, 0x01, 0x02];
+/// let mut buffer = Vec::new();
+/// buffer.write_varint(somedatabytes.len() as i32)?;
+/// buffer.append(&mut somedatabytes);
+/// let bytes = create_packet!(0x00, buffer);
 /// ```
 ///
 /// @return Returns raw bytes to be sent to the client.
@@ -46,17 +43,11 @@ macro_rules! create_packet {
             let out: Result<Vec<u8>, FerrumcError> = {
                 let mut temp_buffer = vec![];
 
-                temp_buffer.push($id);
+                temp_buffer.write_varint($id)?;
 
-                let mut data_bytes = match serde_json::to_vec(&$data) {
-                    Ok(bytes) => bytes,
-                    Err(err) => {
-                        trace!("Failed to serialize packet data: {:?}", err);
-                        return Err(FerrumcError::SerdeJson(err));
-                    }
-                };
+                let mut data_bytes = $data;
 
-                temp_buffer.write_varint(data_bytes.len() as i32)?;
+                // temp_buffer.write_varint(data_bytes.len() as i32)?;
 
                 temp_buffer.append(&mut data_bytes);
 
