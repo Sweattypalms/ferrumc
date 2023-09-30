@@ -1,17 +1,13 @@
-use std::io::Cursor;
+use crate::packet::PacketData;
 use byteorder::{BigEndian, ReadBytesExt};
+use ferrumc_utils::err::FerrumcError;
 use log::trace;
-use crate::err::FerrumcError;
-use crate::server::packet::PacketData;
+use std::io::Cursor;
 
 pub async fn player_position(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
-
     let mut cursor = Cursor::new(&packet_data.bytes);
 
-
-
     // trace!("data: {:?}", packet_data.bytes);
-
 
     let x = cursor.read_f64::<BigEndian>()?;
     let y = cursor.read_f64::<BigEndian>()?;

@@ -89,15 +89,18 @@
 // particle 	probability 	Optional TAG_Compound 	TAG_FLOAT 	Particles that appear randomly in the biome. 	Possibly the probability of spawning the particle. 	?
 // options 	TAG_COMPOUND 	The properties of the particle to spawn. 	Contains the field "type" (TAG_String), which identifies the particle type.
 
+use crate::create_packet;
+use crate::player_connection::Connection;
 use byteorder::{BigEndian, WriteBytesExt};
-use fastnbt::{nbt};
+use fastnbt::nbt;
+use ferrumc_utils::err::FerrumcError;
+use ferrumc_utils::utils::MinecraftWriterExt;
+use ferrumc_world::nbtstructs::dimension_codec::{
+    BiomeRegistry, BiomeRegistryEffects, BiomeRegistryElement, BiomeRegistryValue, DimensionCodec,
+    DimensionType, DimensionTypeElement, DimensionTypeValue,
+};
 use log::trace;
 use tokio::io::AsyncWriteExt;
-use ferrumc::create_packet;
-use ferrumc_world::nbtstructs::dimension_codec::{BiomeRegistry, BiomeRegistryEffects, BiomeRegistryElement, BiomeRegistryValue, DimensionCodec, DimensionType, DimensionTypeElement, DimensionTypeValue};
-use crate::err::FerrumcError;
-use crate::server::player_connection::Connection;
-use crate::utils::MinecraftWriterExt;
 
 pub async fn login_play(connection: &mut Connection) -> Result<(), FerrumcError> {
     let mut buffer = Vec::new();
@@ -124,42 +127,40 @@ pub async fn login_play(connection: &mut Connection) -> Result<(), FerrumcError>
     let dimension_codec = DimensionCodec {
         dimension_type: DimensionType {
             r#type: "minecraft:dimension_type".to_string(),
-            value: vec![
-                DimensionTypeValue {
-                    name: "minecraft:overworld".to_string(),
-                    id: 0,  // Example ID, this may differ
-                    element: DimensionTypeElement {
-                        piglin_safe: false,
-                        natural: true,
-                        ambient_light: 0.5,  // Example value
-                        infiniburn: "minecraft:some_value".to_string(),  // Placeholder value
-                        respawn_anchor_works: false,
-                        has_skylight: true,
-                        bed_works: true,
-                        effects: "minecraft:overworld".to_string(),
-                        has_raids: false,
-                        min_y: 0,
-                        height: 256,
-                        logical_height: 256,
-                        coordinate_scale: 1.0,
-                        ultrawarm: false,
-                        has_ceiling: false,
-                    },
+            value: vec![DimensionTypeValue {
+                name: "minecraft:overworld".to_string(),
+                id: 0, // Example ID, this may differ
+                element: DimensionTypeElement {
+                    piglin_safe: false,
+                    natural: true,
+                    ambient_light: 0.5, // Example value
+                    infiniburn: "minecraft:some_value".to_string(), // Placeholder value
+                    respawn_anchor_works: false,
+                    has_skylight: true,
+                    bed_works: true,
+                    effects: "minecraft:overworld".to_string(),
+                    has_raids: false,
+                    min_y: 0,
+                    height: 256,
+                    logical_height: 256,
+                    coordinate_scale: 1.0,
+                    ultrawarm: false,
+                    has_ceiling: false,
                 },
-            ],
+            }],
         },
         biome_registry: BiomeRegistry {
             r#type: "minecraft:worldgen/biome".to_string(),
             value: vec![
                 BiomeRegistryValue {
                     name: "minecraft:ocean".to_string(),
-                    id: 0,  // Example ID, this may differ
+                    id: 0, // Example ID, this may differ
                     element: BiomeRegistryElement {
                         precipitation: "rain".to_string(),
-                        depth: 0.5,  // Example value
-                        temperature: 0.5,  // Example value
-                        scale: 1.0,  // Example value
-                        downfall: 0.5,  // Example value
+                        depth: 0.5,       // Example value
+                        temperature: 0.5, // Example value
+                        scale: 1.0,       // Example value
+                        downfall: 0.5,    // Example value
                         category: "ocean".to_string(),
                         effects: BiomeRegistryEffects {
                             sky_color: 8364543,
@@ -171,16 +172,16 @@ pub async fn login_play(connection: &mut Connection) -> Result<(), FerrumcError>
                 },
                 BiomeRegistryValue {
                     name: "minecraft:plains".to_string(),
-                    id: 1,  // Example ID, this may differ
+                    id: 1, // Example ID, this may differ
                     element: BiomeRegistryElement {
                         precipitation: "rain".to_string(),
-                        depth: 0.125,  // Example value for plains
-                        temperature: 0.8,  // Example value for plains
-                        scale: 0.05,  // Example value for plains
-                        downfall: 0.4,  // Example value for plains
+                        depth: 0.125,     // Example value for plains
+                        temperature: 0.8, // Example value for plains
+                        scale: 0.05,      // Example value for plains
+                        downfall: 0.4,    // Example value for plains
                         category: "plains".to_string(),
                         effects: BiomeRegistryEffects {
-                            sky_color: 7907327,  // Placeholder values, you might need to adjust
+                            sky_color: 7907327, // Placeholder values, you might need to adjust
                             water_fog_color: 7907327,
                             fog_color: 7907327,
                             water_color: 7907327,

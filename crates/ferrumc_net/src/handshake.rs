@@ -1,10 +1,10 @@
-use std::io::Cursor;
+use crate::packet::PacketData;
+use crate::player_connection::ConnectionState;
+use crate::status::status;
+use ferrumc_utils::err::FerrumcError;
+use ferrumc_utils::utils::MinecraftReaderExt;
 use log::trace;
-use crate::err::FerrumcError;
-use crate::server::player_connection::ConnectionState;
-use crate::server::outbound::status::status;
-use crate::server::packet::PacketData;
-use crate::utils::MinecraftReaderExt;
+use std::io::Cursor;
 
 pub async fn handshake(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
     let mut cursor = Cursor::new(packet_data.bytes);
@@ -17,7 +17,6 @@ pub async fn handshake(packet_data: PacketData<'_>) -> Result<(), FerrumcError> 
     trace!("Server address: {}", server_address);
     trace!("Server port: {}", server_port);
     trace!("Next state: {}", next_state);
-
 
     packet_data.connection.state = match next_state {
         1 => {

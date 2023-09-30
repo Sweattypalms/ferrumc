@@ -1,9 +1,9 @@
-use std::fs::File;
-use std::io::{Read, Write};
+use crate::err::FerrumcError;
 use lazy_static::lazy_static;
 use log::{error, info, trace};
 use serde_derive::{Deserialize, Serialize};
-use crate::err::FerrumcError;
+use std::fs::File;
+use std::io::{Read, Write};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ServerConfig {
@@ -24,7 +24,7 @@ impl ServerConfig {
     }
 }
 
-fn read_config(filename: &str) -> Result<ServerConfig, FerrumcError> {
+pub fn read_config(filename: &str) -> Result<ServerConfig, FerrumcError> {
     let mut file = File::open(filename)?;
 
     let mut contents = String::new();
@@ -35,7 +35,7 @@ fn read_config(filename: &str) -> Result<ServerConfig, FerrumcError> {
     Ok(config)
 }
 
-fn write_config(filename: &str, config: &ServerConfig) -> Result<(), FerrumcError> {
+pub fn write_config(filename: &str, config: &ServerConfig) -> Result<(), FerrumcError> {
     let contents = toml::to_string(config)?;
     let mut file = File::create(filename)?;
     file.write_all(contents.as_bytes())?;
@@ -43,7 +43,7 @@ fn write_config(filename: &str, config: &ServerConfig) -> Result<(), FerrumcErro
     Ok(())
 }
 
-fn get_config() -> ServerConfig {
+pub fn get_config() -> ServerConfig {
     let root = std::env::var("CARGO_MANIFEST_DIR").unwrap_or_else(|_| {
         trace!("Failed to get CARGO_MANIFEST_DIR, using current directory instead.");
         ".".to_string()
