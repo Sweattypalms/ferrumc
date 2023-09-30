@@ -1,10 +1,10 @@
+use crate::packet::handle_packet;
+use ferrumc_utils::err::FerrumcError;
+use ferrumc_utils::utils::MinecraftReaderExt;
+use log::trace;
 use std::io::Cursor;
-use log::{trace};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use crate::err::FerrumcError;
-use crate::server::packet::handle_packet;
-use crate::utils::MinecraftReaderExt;
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub enum ConnectionState {
@@ -34,7 +34,10 @@ impl Connection {
     }
     pub async fn close(&mut self) {
         if let Err(_) = self.stream.shutdown().await {
-            trace!("Error closing connection of addr: {}", self.stream.peer_addr().unwrap());
+            trace!(
+                "Error closing connection of addr: {}",
+                self.stream.peer_addr().unwrap()
+            );
         }
     }
     pub async fn start_connection(&mut self) -> Result<(), FerrumcError> {
@@ -66,9 +69,9 @@ impl Connection {
             // trace!("Packet buffer: {:?}", buf);
 
             match handle_packet(self, packet_id as u8, buf).await {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(err) => {
-                    trace!("Packet error: {}", err);
+                    trace!("Packet error: {:?}", err);
                 }
             }
         }

@@ -1,25 +1,24 @@
-use std::io::Cursor;
-use base64::{Engine};
+use crate::create_packet;
+use crate::player_connection::Connection;
+use base64::Engine;
+use ferrumc_utils::config::get_config;
+use ferrumc_utils::err::FerrumcError;
+use ferrumc_utils::utils::MinecraftWriterExt;
 use image::load_from_memory;
 use lazy_static::lazy_static;
 use log::{debug, error};
 use serde_derive::Serialize;
-use ferrumc::create_packet;
-use crate::config::CONFIG;
-use crate::err::FerrumcError;
-use crate::server::player_connection::Connection;
-use crate::utils::MinecraftWriterExt;
-
+use std::io::Cursor;
 
 pub async fn status(connection: &mut Connection) -> Result<(), FerrumcError> {
     let mut sample = Vec::new();
     let sample_player = Sample {
         name: "§9§lFerrumC".to_string(),
-        id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string()
+        id: "2b3414ed-468a-45c2-b113-6c5f47430edc".to_string(),
     };
     sample.push(sample_player);
 
-    let config = CONFIG.clone();
+    let config = get_config();
     let payload = JsonResponse {
         version: Version {
             name: "FerrumC - 1.17.1".to_string(),
@@ -30,9 +29,7 @@ pub async fn status(connection: &mut Connection) -> Result<(), FerrumcError> {
             online: 0,
             sample,
         },
-        description: Description {
-            text: config.motd,
-        },
+        description: Description { text: config.motd },
         favicon: ICON_BASE64.clone(),
     };
 
@@ -53,7 +50,7 @@ pub struct JsonResponse {
     players: Players,
     description: Description,
     #[serde(skip_serializing_if = "Option::is_none")]
-    favicon: Option<String>
+    favicon: Option<String>,
 }
 
 #[derive(Serialize, Debug)]
@@ -96,7 +93,7 @@ lazy_static! {
                 } else {
                     Some(format!("data:image/png;base64,{}", png_to_base64(&bytes)))
                 }
-            },
+            }
             Err(_) => {
                 error!("Failed to read the image file: {}", img_path);
                 None
