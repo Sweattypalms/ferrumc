@@ -1,6 +1,6 @@
-use std::io::{Read};
-use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use crate::err::FerrumcError;
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use std::io::Read;
 
 pub trait MinecraftReaderExt {
     fn read_varint(&mut self) -> Result<i32, FerrumcError>;
@@ -15,8 +15,7 @@ impl<R: Read> MinecraftReaderExt for R {
         let mut read = 0x80; // Dummy value to start the loop
 
         while (read & 0x80) != 0 {
-            read = ReadBytesExt::read_u8(self)
-                .map_err(|_| FerrumcError::InvalidVarInt)?;
+            read = ReadBytesExt::read_u8(self).map_err(|_| FerrumcError::InvalidVarInt)?;
             let val = read & 0x7F; // Take the last 7 bits of the byte
             result |= (val as i32) << (7 * num_read); // Shift the 7 bits to their proper place
 
@@ -33,13 +32,15 @@ impl<R: Read> MinecraftReaderExt for R {
     fn read_varstring(&mut self) -> Result<String, FerrumcError> {
         let length = self.read_varint()?;
         let mut string = vec![0u8; length as usize];
-        self.read_exact(&mut string).map_err(|_| FerrumcError::InvalidString)?;
+        self.read_exact(&mut string)
+            .map_err(|_| FerrumcError::InvalidString)?;
         let string = String::from_utf8(string).map_err(|_| FerrumcError::InvalidString)?;
         Ok(string)
     }
 
     fn read_u16_be(&mut self) -> Result<u16, FerrumcError> {
-        self.read_u16::<BigEndian>().map_err(|_| FerrumcError::InvalidBigEndian)
+        self.read_u16::<BigEndian>()
+            .map_err(|_| FerrumcError::InvalidBigEndian)
     }
 }
 
@@ -72,6 +73,7 @@ impl<W: std::io::Write> MinecraftWriterExt for W {
     }
 
     fn write_u16_be(&mut self, value: u16) -> Result<(), FerrumcError> {
-        self.write_u16::<BigEndian>(value).map_err(|_| FerrumcError::InvalidBigEndian)
+        self.write_u16::<BigEndian>(value)
+            .map_err(|_| FerrumcError::InvalidBigEndian)
     }
 }

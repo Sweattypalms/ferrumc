@@ -424,6 +424,7 @@ name = "ferrumc_utils"
 version = "0.1.0"
 dependencies = [
  "byteorder",
+ "fastanvil",
  "fastnbt",
  "lazy_static",
  "log",
@@ -440,6 +441,8 @@ dependencies = [
  "bytes",
  "fastanvil",
  "fastnbt",
+ "ferrumc_utils",
+ "log",
  "serde",
  "serde_derive",
  "serde_json",

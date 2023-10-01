@@ -89,7 +89,7 @@ pub async fn start_server(host: &str, port: u16) -> Result<(), FerrumcError> {
 
     let listener = TcpListener::bind(format!("{}:{}", host, port))
         .await
-        .map_err(|_| FerrumcError::PortAlreadyInUse(port))?;
+        .map_err(|_| FerrumcError::FailedPortBind(port))?;
 
     loop {
         let (socket, addr) = listener.accept().await.unwrap();
