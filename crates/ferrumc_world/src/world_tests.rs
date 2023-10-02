@@ -1,8 +1,10 @@
 use crate::nbtstructs;
 use crate::nbtstructs::{Chunk, SeriableRegion};
+use crate::writes::long_to_5bit_array;
 use bytes::{Buf, Bytes};
 use fastanvil::Region;
 use fastnbt::DeOpts;
+use flexbuffers;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::Value;
 use std::collections::HashMap;
@@ -82,7 +84,6 @@ pub fn read_chunks() {
 
 #[test]
 fn write_chunks() {
-    let start = std::time::Instant::now();
     let mut last = std::time::Instant::now();
     let worlddir = std::env::var("WORLD_DIR").unwrap();
     let file = std::fs::File::open(format!("{}\\region\\r.0.0.mca", worlddir)).unwrap();
@@ -100,5 +101,18 @@ fn write_chunks() {
     let mut serial_buffer = flexbuffers::FlexbufferSerializer::new();
     serial_region.serialize(&mut serial_buffer).unwrap();
     println!("Serialize time: {:?}", last.elapsed());
-    let bytes = fastnbt::to_bytes(&serial_region).unwrap();
+}
+
+#[test]
+fn long_2_5bit_test() {
+    let long = 9154745478514753_i64;
+    let array: [u8; 12] = long_to_5bit_array(long);
+    assert_eq!(array, [1, 2, 2, 3, 4, 4, 5, 6, 6, 4, 8, 0]);
+}
+
+#[test]
+fn bits_2_long_test() {
+    let array: [u8; 12] = [1, 2, 2, 3, 4, 4, 5, 6, 6, 4, 8, 0];
+    let long = crate::writes::long_from_5bit_array(array);
+    assert_eq!(long, 9154745478514753_i64);
 }

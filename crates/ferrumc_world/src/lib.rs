@@ -1,5 +1,7 @@
 pub mod blocks;
 pub mod nbtstructs;
+pub mod world_tests;
+pub mod writes;
 
 use fastanvil::{complete::Chunk, CurrentJavaChunk, Region};
 use std::io::BufReader;

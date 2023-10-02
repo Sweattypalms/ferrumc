@@ -1,4 +1,3 @@
-
 #![allow(non_snake_case)]
 #![allow(dead_code)]
 
@@ -235,17 +234,17 @@ pub struct HeightMap {
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
 pub struct Section {
-    Y: i8,
-    BlockStates: Option<LongArray>,
-    Palette: Option<Vec<PaletteBlock>>,
+    pub Y: i8,
+    pub BlockStates: Option<LongArray>,
+    pub Palette: Option<Vec<PaletteBlock>>,
     BlockLight: Option<ByteArray>,
     SkyLight: Option<ByteArray>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]
 pub struct PaletteBlock {
-    Name: String,
-    Properties: Option<Value>, //Option<Vec<PaletteBlockName>>,
+    pub(crate) Name: String,
+    pub(crate) Properties: Option<Value>, //Option<Vec<PaletteBlockName>>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, PartialEq, Clone)]

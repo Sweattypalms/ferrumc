@@ -1,5 +1,5 @@
 [package]
-name = "ferrumc_world"
+name = "ferrumc_net"
 version = "0.1.0"
 edition = "2021"
 
@@ -15,6 +15,10 @@ bytes = "1.5.0"
 tokio = { version = "1.32.0", features = ["full"] }
 ferrumc_utils = { path = "../ferrumc_utils" }
 log = "0.4.20"
-flexbuffers = "2.0.0"
-lz4_flex = "0.11.1"
-flate2 = "1.0.27"
+byteorder = "1.4.3"
+colored = "2.0.4"
+uuid = { version = "1.4.1", features = ["v3", "v5"] }
+base64 = "0.21.4"
+image = "0.24.7"
+lazy_static = "1.4.0"
+ferrumc_world = { path = "../ferrumc_world" }
