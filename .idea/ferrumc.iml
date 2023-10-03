@@ -6,6 +6,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ferrumc_net/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ferrumc_utils/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ferrumc_utils/benches" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/crates/ferrumc_world/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/ferrumc_net/target" />

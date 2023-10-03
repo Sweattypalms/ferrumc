@@ -5,6 +5,13 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[dev-dependencies]
+criterion = "0.5.1"
+
+[[bench]]
+name = "benchmark"
+harness = false
+
 [dependencies]
 fastnbt = "2.4.4"
 serde = "1.0.188"
@@ -17,3 +24,4 @@ byteorder = "1.4.3"
 tokio = { version = "1.32.0", features = ["full"] }
 log = "0.4.20"
 lazy_static = "1.4.0"
+criterion = "0.5.1"
