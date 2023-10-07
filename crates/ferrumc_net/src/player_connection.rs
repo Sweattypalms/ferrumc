@@ -1,13 +1,13 @@
 use crate::packet::handle_packet;
 use ferrumc_utils::err::FerrumcError;
 use ferrumc_utils::utils::MinecraftReaderExt;
+use ferrumc_utils::utils::MinecraftWriterExt;
 use log::trace;
 use std::io::Cursor;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
-use uuid::Uuid;
-use ferrumc_utils::utils::MinecraftWriterExt;
 use tokio::sync::mpsc::channel;
+use uuid::Uuid;
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub enum ConnectionState {
@@ -18,11 +18,23 @@ pub enum ConnectionState {
 }
 
 #[derive(Debug)]
+pub(crate) struct ClientSettings {
+    pub(crate) locale: String,
+    pub view_distance: i32,
+    pub chat_mode: i32,
+    pub chat_colors: bool,
+    pub displayed_skin_parts: i32,
+    pub main_hand: i32,
+    pub disable_text_filtering: bool,
+}
+
+#[derive(Debug)]
 pub struct Connection {
     pub state: ConnectionState,
     pub stream: TcpStream,
     pub username: Option<String>,
     pub uuid: Option<Uuid>,
+    pub client_settings: Option<ClientSettings>,
 }
 
 impl Connection {
@@ -32,6 +44,7 @@ impl Connection {
             stream,
             username: None,
             uuid: None,
+            client_settings: None,
         }
     }
 
@@ -159,7 +172,6 @@ impl Connection {
     }
 
     pub async fn tick(&mut self) -> Result<(), FerrumcError> {
-
         if self.username.is_none() || self.stream.peer_addr().is_err() {
             return Ok(());
         }
@@ -175,7 +187,7 @@ impl Connection {
         //
         // trace!("Sent keep alive packet");
 
-        trace!("Player ticked.");
+        //trace!("Player ticked.");
 
         Ok(())
     }

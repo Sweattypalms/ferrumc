@@ -10,10 +10,10 @@ use std::io::Cursor;
 use tokio::io::AsyncWriteExt;
 use uuid::Uuid;
 
-pub async fn login_start(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
+pub async fn login_start(packet_data: &mut PacketData<'_>) -> Result<(), FerrumcError> {
     trace!("Login start packet received");
 
-    let mut cursor = Cursor::new(packet_data.bytes);
+    let mut cursor = Cursor::new(&packet_data.bytes);
     let username = cursor.read_varstring()?;
 
     trace!("Username: {}", username);

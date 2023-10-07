@@ -6,8 +6,8 @@ use ferrumc_utils::utils::MinecraftReaderExt;
 use log::trace;
 use std::io::Cursor;
 
-pub async fn handshake(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
-    let mut cursor = Cursor::new(packet_data.bytes);
+pub async fn handshake(packet_data: &mut PacketData<'_>) -> Result<(), FerrumcError> {
+    let mut cursor = Cursor::new(&packet_data.bytes);
     let protocol_version = cursor.read_varint()?;
     let server_address = cursor.read_varstring()?;
     let server_port = cursor.read_u16_be()?;

@@ -3,7 +3,7 @@ use ferrumc_utils::err::FerrumcError;
 use ferrumc_utils::utils::MinecraftWriterExt;
 use log::trace;
 
-pub async fn ping(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
+pub async fn ping(packet_data: &mut PacketData<'_>) -> Result<(), FerrumcError> {
     trace!("Ping packet received");
 
     let mut buffer = vec![];

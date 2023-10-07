@@ -1,4 +1,7 @@
+pub mod chunk_data;
+pub mod entity_action;
 pub mod handshake;
+pub mod join_settings;
 pub mod login_play;
 pub mod login_start;
 pub mod packet;
@@ -7,7 +10,6 @@ pub mod player;
 pub mod player_connection;
 pub mod player_position;
 pub mod status;
-pub mod chunk_data;
 pub mod structs;
 
 use crate::player_connection::Connection;
@@ -23,9 +25,9 @@ macro_rules! handle_packet {
             $(
                 $state => {
                     match $data.id {
-                        $($id => $handler($data).await,)+
+                        $($id => $handler(&mut $data).await,)+
                         _ => {
-                            trace!("Unknown Packet ID {} for state {:?}", $data.id, $data.connection.state);
+                            trace!("Unknown Packet ID {} ({:#02X}) for state {:?}", $data.id, $data.id, $data.connection.state);
                             return Err(FerrumcError::InvalidPacketId);
                         }
                     }
@@ -34,7 +36,6 @@ macro_rules! handle_packet {
         }
     };
 }
-
 
 /// Creates a packet handler for the given state and packet id.<br>
 ///
