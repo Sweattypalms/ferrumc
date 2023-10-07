@@ -106,7 +106,7 @@ pub async fn login_play(connection: &mut Connection) -> Result<(), FerrumcError>
     let mut buffer = Vec::new();
 
     // Entity ID
-    WriteBytesExt::write_i32::<BigEndian>(&mut buffer, 178)?;
+    WriteBytesExt::write_i32::<BigEndian>(&mut buffer, 0)?;
 
     // Is hardcore
     WriteBytesExt::write_u8(&mut buffer, 0)?;
@@ -199,7 +199,7 @@ pub async fn login_play(connection: &mut Connection) -> Result<(), FerrumcError>
 
     let dimension_nbt = fastnbt::to_bytes(&codec_value)?;
 
-    trace!("Dimension NBT: {:?}", codec_value);
+    // trace!("Dimension NBT: {:?}", codec_value);
 
     buffer.extend_from_slice(&dimension_nbt);
 
@@ -249,7 +249,7 @@ pub async fn login_play(connection: &mut Connection) -> Result<(), FerrumcError>
     WriteBytesExt::write_u8(&mut buffer, 0)?;
 
     // Is Flat
-    WriteBytesExt::write_u8(&mut buffer, 0)?;
+    WriteBytesExt::write_u8(&mut buffer, 1)?;
 
     let raw = create_packet!(0x26, buffer)?;
 

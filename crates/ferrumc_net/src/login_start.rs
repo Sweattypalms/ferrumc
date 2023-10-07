@@ -47,6 +47,8 @@ pub async fn login_start(packet_data: PacketData<'_>) -> Result<(), FerrumcError
     login_play(packet_data.connection).await?;
 
     packet_data.connection.state = ConnectionState::Play;
+    packet_data.connection.username = Some(username);
+    packet_data.connection.uuid = Some(uuid);
 
     Ok(())
 }

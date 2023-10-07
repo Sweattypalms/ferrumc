@@ -1,12 +1,14 @@
-mod handshake;
-mod login_play;
-mod login_start;
+pub mod handshake;
+pub mod login_play;
+pub mod login_start;
 pub mod packet;
-mod ping;
+pub mod ping;
 pub mod player;
 pub mod player_connection;
-mod player_position;
-mod status;
+pub mod player_position;
+pub mod status;
+pub mod chunk_data;
+pub mod structs;
 
 use crate::player_connection::Connection;
 use colored::Colorize;
@@ -16,26 +18,23 @@ use tokio::net::{TcpListener, TcpStream};
 
 #[macro_export]
 macro_rules! handle_packet {
-    ($data:expr, $($state:pat => $id:expr => $handler:ident), *) => {
+    ($data:expr, $($state:pat => { $($id:expr => $handler:ident),+ }), *) => {
         match $data.connection.state {
-                $(
-                    $state => {
-                        match $data.id{
-                            $id => $handler($data).await,
-                            _ => {
-                                trace!("Unknown Packet ID {} for state {:?}", $data.id, $data.connection.state);
-                                return Err(FerrumcError::InvalidPacketId);
-                            }
+            $(
+                $state => {
+                    match $data.id {
+                        $($id => $handler($data).await,)+
+                        _ => {
+                            trace!("Unknown Packet ID {} for state {:?}", $data.id, $data.connection.state);
+                            return Err(FerrumcError::InvalidPacketId);
                         }
                     }
-                )*
-                _ => {
-                    trace!("Invalid state: {:?}", $data.connection.state);
-                    return Err(FerrumcError::InvalidState);
                 }
-            }
+            )*
+        }
     };
 }
+
 
 /// Creates a packet handler for the given state and packet id.<br>
 ///
