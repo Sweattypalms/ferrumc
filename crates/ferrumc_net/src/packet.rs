@@ -1,10 +1,10 @@
-use crate::chunk_data::some_packet_received_on_join;
+use crate::chunk_data::set_pos_on_join;
 use crate::handle_packet;
 use crate::player_connection::Connection;
 use crate::player_connection::ConnectionState;
 use crate::{
-    entity_action::entity_action, join_settings::client_settings, login_start::login_start,
-    player_position::*,
+    chat::chat_message, entity_action::entity_action, join_settings::client_settings,
+    login_start::login_start, player_position::*,
 };
 use crate::{handshake::handshake, ping::ping};
 use ferrumc_utils::err::FerrumcError;
@@ -33,17 +33,14 @@ pub async fn handle_packet(
         ConnectionState::Status => { 1 => ping },
         ConnectionState::Login => { 0 => login_start },
         ConnectionState::Play => {
+            3 => chat_message,
             5 => client_settings,
             17 => player_position,
             18 => player_position_and_rotation,
             19 => player_rotation,
-            10 => some_packet_received_on_join,
+            10 => set_pos_on_join,
             25 => set_on_ground,
             27 => entity_action
         }
     )
-}
-
-pub async fn handle_unknown(packet_data: PacketData<'_>) -> Result<(), FerrumcError> {
-    Ok(())
 }

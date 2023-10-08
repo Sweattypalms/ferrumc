@@ -505,6 +505,7 @@ dependencies = [
  "image 0.24.7",
  "lazy_static",
  "log",
+ "priomutex",
  "serde",
  "serde_derive",
  "serde_json",
@@ -1015,6 +1016,12 @@ dependencies = [
  "flate2",
  "miniz_oxide",
 ]
+
+[[package]]
+name = "priomutex"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31c5f30db220cf084f346c232042cc79bb6aa7de680c5d15db17351f3aa03f20"
 
 [[package]]
 name = "proc-macro-crate"

@@ -5,12 +5,9 @@ use crate::structs::{Angle, Position};
 use byteorder::{BigEndian, WriteBytesExt};
 use ferrumc_utils::err::FerrumcError;
 use ferrumc_utils::utils::MinecraftWriterExt;
+use log::trace;
 
-pub async fn some_packet_received_on_join(
-    packet_data: &mut PacketData<'_>,
-) -> Result<(), FerrumcError> {
-    println!("Some packet received on join...");
-
+pub async fn set_pos_on_join(packet_data: &mut PacketData<'_>) -> Result<(), FerrumcError> {
     set_default_spawn_position(packet_data.connection).await?;
     player_position_and_look(packet_data.connection).await?;
     player_info(packet_data.connection).await?;
@@ -19,7 +16,7 @@ pub async fn some_packet_received_on_join(
 }
 
 pub async fn set_default_spawn_position(connection: &mut Connection) -> Result<(), FerrumcError> {
-    println!("Sending spawn position...");
+    trace!("Sending spawn position...");
 
     let pos: Position = Position { x: 8, y: 100, z: 8 };
 

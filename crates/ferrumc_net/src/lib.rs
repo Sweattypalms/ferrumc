@@ -1,3 +1,4 @@
+pub mod chat;
 pub mod chunk_data;
 pub mod entity_action;
 pub mod handshake;
@@ -15,8 +16,17 @@ pub mod structs;
 use crate::player_connection::Connection;
 use colored::Colorize;
 use ferrumc_utils::err::FerrumcError;
+use lazy_static::lazy_static;
 use log::{info, trace};
+use priomutex;
+use std::sync::Arc;
+use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
+
+lazy_static! {
+    static ref CONN_POOL: Arc<tokio::sync::Mutex<Vec<Connection>>> =
+        Arc::new(tokio::sync::Mutex::new(Vec::new()));
+}
 
 #[macro_export]
 macro_rules! handle_packet {
@@ -91,6 +101,8 @@ pub async fn start_server(host: &str, port: u16) -> Result<(), FerrumcError> {
         .await
         .map_err(|_| FerrumcError::FailedPortBind(port))?;
 
+    tokio::spawn(iterate_pool());
+
     loop {
         let (socket, addr) = listener.accept().await.unwrap();
         trace!(
@@ -99,7 +111,7 @@ pub async fn start_server(host: &str, port: u16) -> Result<(), FerrumcError> {
             addr.port().to_string().blue()
         );
 
-        tokio::spawn(handle_connection(socket));
+        CONN_POOL.lock().await.push(Connection::new(socket));
     }
 }
 
@@ -108,5 +120,29 @@ pub async fn handle_connection(socket: TcpStream) {
 
     if let Err(err) = connection.start_connection().await {
         trace!("Connection error: {:?}", err);
+    }
+}
+
+async fn iterate_pool() -> Result<(), FerrumcError> {
+    loop {
+        let startms = std::time::Instant::now();
+        let mut pool = CONN_POOL.lock().await;
+
+        for connection in pool.iter_mut() {
+            if let Err(err) = connection.tick().await {
+                trace!("Tick error: {:?}", err);
+            }
+            connection.read_packet().await?;
+            connection.stream.flush().await.unwrap();
+        }
+        drop(pool);
+        let endms = std::time::Instant::now();
+        let elapsed = endms - startms;
+        if elapsed.as_millis() < 50 {
+            tokio::time::sleep(std::time::Duration::from_millis(
+                50 - elapsed.as_millis() as u64,
+            ))
+            .await;
+        }
     }
 }

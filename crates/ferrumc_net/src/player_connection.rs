@@ -143,7 +143,7 @@ impl Connection {
         }
     }
 
-    async fn read_packet(&mut self) -> Result<(), FerrumcError> {
+    pub async fn read_packet(&mut self) -> Result<(), FerrumcError> {
         let mut length_buffer = [0u8; 1]; // 1 byte, can have at most 255 bytes in a packet
         let n = self.stream.read(&mut length_buffer).await?;
 

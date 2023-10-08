@@ -26,3 +26,4 @@ image = "0.24.7"
 lazy_static = "1.4.0"
 ferrumc_world = { path = "../ferrumc_world" }
 criterion = "0.5.1"
+priomutex = "0.3.1"
