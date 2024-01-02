@@ -1,0 +1,23 @@
+[package]
+name = "ferrumc2_0"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Async
+tokio = {version = "1.35.1", features = ["full"]}
+
+# Error handling
+anyhow = "1.0.79"
+thiserror = "1.0.56"
+
+# Logging
+log = "0.4.20"
+env_logger = "0.10.1"
+
+# config / ser / de
+serde = { version = "1.0.194", features = ["derive"]}
+toml = "0.8.8"
+config = "0.13.4"
